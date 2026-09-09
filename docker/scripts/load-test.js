@@ -12,7 +12,7 @@ export const options = {
             maxVUs: 300,
 
             stages: [
-                { target: 1000, duration: '15m' }, // 0 > 600 RPS (6m)
+                { target: 600, duration: '6m' }, // 0 > 600 RPS (6m)
                 //{ target: 1000, duration: '15m' }, // 1000 RPS 유지 (15m)
             ],
         },
