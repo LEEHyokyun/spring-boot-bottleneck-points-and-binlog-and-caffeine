@@ -1,0 +1,132 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.0' //boot BOM 자동 등록
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'spring-boot-bottleneck-points-and-binlog-and-caffeine'
+version = '1'
+
+//ext{
+//    springCloudVersion = "2025.0.1"
+//}
+
+/*
+* MSA(Multi Module) Procject를 구성
+* 상위 System(=allprojects)에서 하위 Sub Modules를 정의해주는 방식으로 구성
+* 혹은 상위 System을 지정해줌으로 인해 모든 하위 Modules에 환경설정을 바로 적용 가능함.
+* */
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    //Cloud는 BOM 수동 관리 대상
+//    dependencyManagement {
+//        imports {
+//            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" //BOM등록
+//        }
+//    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.batch:spring-batch-bom:5.2.3"
+        }
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    bootJar {
+        archiveFileName = 'spring-boot-bottleneck-points-and-comparing-improvement-rates.jar'
+    }
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    dependencies {
+        /*
+        * web mvc
+        * */
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+
+        /*
+        * binlog connector(debezium)
+        * */
+        implementation 'io.debezium:debezium-api:3.3.0.Final'
+        //implementation 'io.debezium:debezium-embedded:3.3.0.Final'
+        implementation 'io.debezium:debezium-connector-mysql:3.3.0.Final'
+
+        /*
+        * batch + instancio
+        * */
+        implementation 'org.springframework.boot:spring-boot-starter-batch'
+        implementation 'org.instancio:instancio-core:5.4.0'
+
+        /*
+        * actuator
+        * */
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
+        runtimeOnly 'io.micrometer:micrometer-registry-prometheus' //Nginx, WAS Prometheus Registry
+
+        /*
+        * kafka
+        * */
+        //implementation 'org.springframework.kafka:spring-kafka'
+
+        /*
+        * Redis
+        * */
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+        /*
+        * mysql / jpa
+        * */
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        runtimeOnly 'com.mysql:mysql-connector-j'
+        //runtimeOnly 'org.postgresql:postgresql'
+
+        /*
+        * data serializer - JsonProcessingException / logging
+        * */
+        implementation 'ch.qos.logback:logback-classic'
+
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+
+        /*
+        * Test Containers for test comfortability(*datasource 주입 by serviceconnection)
+        * */
+        implementation 'org.springframework.boot:spring-boot-testcontainers'
+
+        /*
+        * test container / mysql
+        * */
+        testImplementation 'org.testcontainers:junit-jupiter'
+        testImplementation 'org.testcontainers:mysql'
+        //testImplementation 'org.testcontainers:postgresql'
+
+        testCompileOnly 'org.projectlombok:lombok'
+        testAnnotationProcessor 'org.projectlombok:lombok'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+        /*
+        * batch test
+        * */
+        testImplementation 'org.springframework.batch:spring-batch-test'
+
+        /*
+        * instancio test code
+        * */
+        testImplementation 'org.instancio:instancio-core:5.4.0'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+}
