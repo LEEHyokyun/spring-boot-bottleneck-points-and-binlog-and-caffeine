@@ -61,6 +61,11 @@ allprojects {
         implementation 'io.debezium:debezium-connector-mysql:3.3.0.Final'
 
         /*
+        * caffeine
+        * */
+        implementation 'com.github.ben-manes.caffeine:caffeine'
+
+        /*
         * batch + instancio
         * */
         implementation 'org.springframework.boot:spring-boot-starter-batch'
