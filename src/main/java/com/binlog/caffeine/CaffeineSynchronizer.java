@@ -1,10 +1,11 @@
-package com.binlog.cache.caffeine;
+package com.binlog.caffeine;
 
 import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.strategy.CheckPointStrategy;
 import com.binlog.event.BinlogEvent;
 import com.exception.CacheSynchronizationException;
 import com.order.model.entity.Order;
+import com.order.util.KeyGenerator;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,14 +96,20 @@ public class CaffeineSynchronizer {
 
         Order order = getOrder(event);
 
-        caffeineHandler.put(order.getOrderId(), order);
+        caffeineHandler.put(
+                order.getOrderId(),
+                order
+        );
     }
 
     private void handleUpdate(BinlogEvent event) {
 
         Order order = getOrder(event);
 
-        caffeineHandler.put(order.getOrderId(), order);
+        caffeineHandler.put(
+                order.getOrderId(),
+                order
+        );
     }
 
     private void handleDelete(BinlogEvent event) {
@@ -110,7 +117,9 @@ public class CaffeineSynchronizer {
         /*
         * 삭제의 경우 캐싱에서 삭제한다.
         * */
-        caffeineHandler.evict(event.orderId());
+        caffeineHandler.evict(
+                event.orderId()
+        );
     }
 
     /*

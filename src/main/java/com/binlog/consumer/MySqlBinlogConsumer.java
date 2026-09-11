@@ -1,6 +1,6 @@
 package com.binlog.consumer;
 
-import com.binlog.cache.caffeine.CaffeineSynchronizer;
+import com.binlog.caffeine.CaffeineSynchronizer;
 import com.binlog.event.BinlogEventFactory;
 import com.binlog.event.BinlogPosition;
 import com.binlog.metrics.BinlogMetrics;

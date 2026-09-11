@@ -1,6 +1,6 @@
-package com.binlog.check;
+package com.check;
 
-import com.binlog.cache.caffeine.CaffeineHandler;
+import com.binlog.caffeine.CaffeineHandler;
 import com.order.model.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/cache")
 @RequiredArgsConstructor
-public class BinlogCheckController {
+public class CheckController {
 
     private final CaffeineHandler caffeineHandler;
 
     @GetMapping("/get/{orderId}")
     public Order getOrder(@PathVariable Long orderId) {
-        return caffeineHandler.get(orderId);
+        return Order.from( caffeineHandler.get(orderId) );
     }
 }

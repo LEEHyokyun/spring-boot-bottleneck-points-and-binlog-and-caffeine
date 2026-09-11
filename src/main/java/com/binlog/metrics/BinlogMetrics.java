@@ -3,6 +3,9 @@ package com.binlog.metrics;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -194,5 +197,17 @@ public class BinlogMetrics {
      */
     public void stopCheckpointBatch(Timer.Sample sample) {
         sample.stop(checkpointBatchTimer);
+    }
+
+    public void incrementCacheRequest() {
+        meterRegistry
+                .counter("cache_request_total")
+                .increment();
+    }
+
+    public void incrementCacheMiss() {
+        meterRegistry
+                .counter("cache_miss_total")
+                .increment();
     }
 }

@@ -1,9 +1,10 @@
-package com.binlog.cache.caffeine;
+package com.binlog.caffeine;
 
 import com.binlog.event.BinlogPosition;
 import com.checkpoint.handler.CheckpointHandler;
 import com.order.model.entity.Order;
 import com.order.repository.OrderRepository;
+import com.order.util.KeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class CaffeineRecoveryHandler {
     * hot data 구간
     * */
     private static final long HOT_DATA_START_ORDER_ID = 1L;
-    private static final long HOT_DATA_END_ORDER_ID = 200L;
+    private static final long HOT_DATA_END_ORDER_ID = 50L;
 
     /*
     * Cache Recovery
@@ -68,7 +69,10 @@ public class CaffeineRecoveryHandler {
         List<Order> orders = orderRepository.findByOrderIdBetween(HOT_DATA_START_ORDER_ID, HOT_DATA_END_ORDER_ID);
 
         for (Order order : orders) {
-            caffeineHandler.put( order.getOrderId(), order );
+            caffeineHandler.put(
+                    order.getOrderId(),
+                    order
+            );
         }
 
         log.info( "Hot data restored. range={}~{}, count={}", HOT_DATA_START_ORDER_ID, HOT_DATA_END_ORDER_ID, orders.size() );

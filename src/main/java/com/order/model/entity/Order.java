@@ -1,5 +1,7 @@
 package com.order.model.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.order.util.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,6 +29,16 @@ public class Order {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    /*
+    * Object > Order
+    * */
+    public static Order from(Object object){
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        return mapper.convertValue(object, Order.class);
+    }
 
     public void update(String orderStatus) {
         this.orderStatus = OrderStatus.to(orderStatus);

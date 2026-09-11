@@ -12,7 +12,7 @@ export const options = {
             maxVUs: 300,
 
             stages: [
-                { target: 1000, duration: '15m' }, // 0 > 600 RPS (6m)
+                { target: 600, duration: '6m' }, // 0 > 600 RPS (6m)
                 //{ target: 1000, duration: '15m' }, // 1000 RPS 유지 (15m)
             ],
         },
@@ -51,9 +51,19 @@ export const options = {
 
 export default function () {
     // 1 ~ 5000
-    const orderId = Math.floor(Math.random() * 200) + 1; // 1 ~ 200
+    const orderId = Math.floor(Math.random() * 5000) + 1; // 1 ~ 200
 
     http.get(
         `http://nginx/order/select?orderId=${orderId}`
     );
 }
+
+// export default function () {
+//     // 1 ~ 5000
+//     const orderId = Math.floor(Math.random() * 200) + 1; // 1 ~ 200
+//
+//     http.get(
+//         `http://nginx/order/select?orderId=${orderId}`
+//     );
+// }
+
