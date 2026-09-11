@@ -1,22 +1,15 @@
 package com.binlog.consumer;
 
-import com.binlog.cache.CaffeineSynchronizer;
+import com.binlog.cache.caffeine.CaffeineSynchronizer;
 import com.binlog.event.BinlogEventFactory;
 import com.binlog.event.BinlogPosition;
 import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.handler.CheckpointHandler;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.*;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Component

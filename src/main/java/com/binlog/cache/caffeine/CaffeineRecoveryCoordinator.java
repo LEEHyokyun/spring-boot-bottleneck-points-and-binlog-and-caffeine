@@ -1,4 +1,4 @@
-package com.binlog.cache;
+package com.binlog.cache.caffeine;
 
 import com.binlog.consumer.MySqlBinlogConsumer;
 import lombok.RequiredArgsConstructor;

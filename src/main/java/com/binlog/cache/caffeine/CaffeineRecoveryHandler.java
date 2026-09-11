@@ -1,19 +1,14 @@
-package com.binlog.cache;
+package com.binlog.cache.caffeine;
 
 import com.binlog.event.BinlogPosition;
 import com.checkpoint.handler.CheckpointHandler;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.order.model.entity.Order;
 import com.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /*
 * redisStringTemplate처럼 caffeine 전용 handler 생성

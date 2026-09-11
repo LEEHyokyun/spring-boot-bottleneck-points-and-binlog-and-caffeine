@@ -1,4 +1,4 @@
-package com.binlog.cache;
+package com.binlog.cache.caffeine;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

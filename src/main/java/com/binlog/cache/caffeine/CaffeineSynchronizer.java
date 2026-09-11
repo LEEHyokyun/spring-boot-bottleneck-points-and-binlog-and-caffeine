@@ -1,4 +1,4 @@
-package com.binlog.cache;
+package com.binlog.cache.caffeine;
 
 import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.strategy.CheckPointStrategy;

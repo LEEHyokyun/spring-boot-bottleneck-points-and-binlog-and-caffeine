@@ -1,6 +1,6 @@
 package com.binlog.check;
 
-import com.binlog.cache.CaffeineHandler;
+import com.binlog.cache.caffeine.CaffeineHandler;
 import com.order.model.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
