@@ -3,6 +3,7 @@ package com.binlog.consumer;
 import com.binlog.cache.CaffeineSynchronizer;
 import com.binlog.event.BinlogEventFactory;
 import com.binlog.event.BinlogPosition;
+import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.handler.CheckpointHandler;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.*;
@@ -21,6 +22,8 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class MySqlBinlogConsumer {
+
+    private final BinlogMetrics binlogMetrics;
 
     /*
     * 초기값 지정 : JVM 최초 시작을 위해 최초로 설정한 값
@@ -94,7 +97,33 @@ public class MySqlBinlogConsumer {
         * CHECPOINT 기반, binlog를 읽으면서 누락된 복구 및 동기화 등을 진행하는 것.
         * */
         client.registerEventListener( event -> {
-            if (isOrderEvent(event)) handleEvent(client, event);
+            if (isOrderEvent(event)) {
+                //handleEvent(client, event);
+
+                binlogMetrics.incrementEventReceived();
+
+                var sample = binlogMetrics.startEventProcess();
+
+                try {
+
+                    /*
+                    * handleEvent
+                    * */
+                    handleEvent(client, event);
+
+                    binlogMetrics.incrementEventProcessed();
+
+                } catch (Exception e) {
+
+                    binlogMetrics.incrementEventFailed();
+
+                    throw e;
+
+                } finally {
+
+                    binlogMetrics.stopEventProcess(sample);
+                }
+            }
         });
 
         /*

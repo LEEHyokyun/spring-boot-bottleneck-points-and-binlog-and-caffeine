@@ -1,8 +1,10 @@
 package com.checkpoint.batch;
 
+import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.strategy.CheckPointStrategy;
 import com.binlog.event.BinlogPosition;
 import com.checkpoint.handler.CheckpointHandler;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,8 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CheckpointBatchScheduler {
 
+    private final BinlogMetrics binlogMetrics;
+
     /*
-    * 1분마다 DB에 적재하는 크기 = 100
+    * 300ms마다 DB에 적재하는 크기 = 100
     * */
     private static final int CHUNK_SIZE = 100;
 
@@ -24,9 +28,19 @@ public class CheckpointBatchScheduler {
     private final CheckpointHandler checkpointHandler;
 
     /* * 1분마다 최대 100개의 In-Memory Checkpoint를 * DB에 Insert한다(No batch, 스케쥴링으로 처리). */
-    @Scheduled(fixedRate = 60_000)
+    @Scheduled(fixedRate = 300)
     public void persist() {
-        List<BinlogPosition> checkpoints = checkPointStrategy.peek(CHUNK_SIZE); /* * 저장할 checkpoint가 없으면 종료 */ if (checkpoints.isEmpty()) { log.info( "Checkpoint batch skipped. queue is empty." ); return; }
+
+        binlogMetrics.incrementCheckpointBatchExecuted();
+        Timer.Sample sample = binlogMetrics.startCheckpointBatch();
+
+        List<BinlogPosition> checkpoints = checkPointStrategy.peek(CHUNK_SIZE); /* * 저장할 checkpoint가 없으면 종료 */
+
+        if (checkpoints.isEmpty()) {
+            log.info( "Checkpoint batch skipped. queue is empty." );
+            return;
+        }
+
         log.info( "Checkpoint batch started. count={}, queueSize={}", checkpoints.size(), checkPointStrategy.count() );
 
         try {
@@ -43,6 +57,8 @@ public class CheckpointBatchScheduler {
             log.error( "Checkpoint batch failed. count={}, queueSize={}", checkpoints.size(), checkPointStrategy.count()
                     , e
             );
+        } finally {
+            binlogMetrics.stopCheckpointBatch(sample);
         }
     }
 

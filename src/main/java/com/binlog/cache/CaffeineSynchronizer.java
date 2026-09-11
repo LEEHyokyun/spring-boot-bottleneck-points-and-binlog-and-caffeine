@@ -1,9 +1,11 @@
 package com.binlog.cache;
 
+import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.strategy.CheckPointStrategy;
 import com.binlog.event.BinlogEvent;
 import com.exception.CacheSynchronizationException;
 import com.order.model.entity.Order;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CaffeineSynchronizer {
+
+    private final BinlogMetrics binlogMetrics;
 
     private final CaffeineHandler caffeineHandler;
 
@@ -26,6 +30,8 @@ public class CaffeineSynchronizer {
     * binlog event에 따른 캐싱 데이터 동기화
     * */
     public void synchronize(BinlogEvent binlogEvent){
+
+        Timer.Sample sample = binlogMetrics.startCacheSync();
 
         /*
         * binlogEvent를 받아 캐싱 데이터를 동기화한다.
@@ -73,7 +79,10 @@ public class CaffeineSynchronizer {
 
             /*
             * 추가 : 캐싱에 실패했는데 JVM은 계속 동작중이라면?
+            * -> 캐싱 동기화가 이루어지지 않는다. 그대신 binlog에 쌓이므로 이를 이벤트로 받아서 복구 처리가 가능하다.
             * */
+        } finally {
+            binlogMetrics.stopCacheSync(sample);
         }
 
     }
