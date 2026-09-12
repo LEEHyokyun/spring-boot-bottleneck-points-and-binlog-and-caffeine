@@ -24,7 +24,7 @@ public class OrderService {
     @Cacheable(
             cacheName = "order",
             key = "#orderId",
-            ttl = 300
+            ttl = 3000
     )
     public OrderSelectResponse select(Long orderId){
         return OrderSelectResponse.from(orderRepository.findById(orderId).orElseThrow());

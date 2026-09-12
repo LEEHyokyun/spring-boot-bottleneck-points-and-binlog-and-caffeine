@@ -28,7 +28,7 @@ public class CaffeineRecoveryHandler {
     * hot data 구간
     * */
     private static final long HOT_DATA_START_ORDER_ID = 1L;
-    private static final long HOT_DATA_END_ORDER_ID = 50L;
+    private static final long HOT_DATA_END_ORDER_ID = 5000L;
 
     /*
     * Cache Recovery
