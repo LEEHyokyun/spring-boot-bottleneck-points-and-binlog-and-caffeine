@@ -6,10 +6,8 @@ import com.order.model.response.OrderUpdateResponse;
 import com.order.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -18,7 +16,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class OrderServiceTest_Origin {
+class OrderCacheableServiceTest_Origin {
 
     @Mock
     private OrderRepository orderRepository;
@@ -27,7 +25,7 @@ class OrderServiceTest_Origin {
     private Order order;
 
     @InjectMocks
-    private OrderService orderService;
+    private OrderCacheAsideService orderCacheAsideService;
 
     private OrderUpdateRequest request;
 
@@ -51,7 +49,7 @@ class OrderServiceTest_Origin {
 
         // when
         OrderUpdateResponse response =
-                orderService.update(request);
+                orderCacheAsideService.update(request);
 
         // then
 

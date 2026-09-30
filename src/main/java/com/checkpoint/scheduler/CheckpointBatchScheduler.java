@@ -1,4 +1,4 @@
-package com.checkpoint.batch;
+package com.checkpoint.scheduler;
 
 import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.strategy.CheckPointStrategy;

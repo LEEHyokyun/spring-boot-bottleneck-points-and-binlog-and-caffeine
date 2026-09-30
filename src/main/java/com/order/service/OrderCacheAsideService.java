@@ -1,5 +1,7 @@
 package com.order.service;
 
+import com.common.CacheDomain;
+import com.order.cache.Cacheable;
 import com.order.model.entity.Order;
 import com.order.model.request.OrderUpdateRequest;
 import com.order.model.response.OrderSelectResponse;
@@ -14,11 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderService implements OrderCacheService{
+public class OrderCacheAsideService implements OrderCacheService{
 
     private final OrderRepository orderRepository;
 
     @Override
+    @Cacheable(
+            cacheStrategy = CacheStrategy.CACHE_ASIDE,
+            cacheDomain = CacheDomain.ORDER,
+            key = "#orderId",
+            ttl = 3000
+    )
     public OrderSelectResponse select(Long orderId){
         return OrderSelectResponse.from(orderRepository.findById(orderId).orElseThrow());
     }
@@ -34,5 +42,5 @@ public class OrderService implements OrderCacheService{
     }
 
     @Override
-    public boolean supports(CacheStrategy cacheStrategy) { return CacheStrategy.NONE == cacheStrategy; }
+    public boolean supports(CacheStrategy cacheStrategy) { return CacheStrategy.CACHE_ASIDE == cacheStrategy; }
 }

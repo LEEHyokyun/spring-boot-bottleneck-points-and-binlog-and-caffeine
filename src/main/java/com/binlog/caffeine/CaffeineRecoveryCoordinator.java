@@ -1,6 +1,8 @@
 package com.binlog.caffeine;
 
 import com.binlog.consumer.MySqlBinlogConsumer;
+import com.common.CacheDomain;
+import com.common.CacheStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -12,6 +14,12 @@ public class CaffeineRecoveryCoordinator {
 
     private final CaffeineRecoveryHandler caffeineRecoveryHandler;
     private final MySqlBinlogConsumer mySqlBinlogConsumer;
+
+    /*
+    * caching domain
+    * */
+    private static final CacheDomain CACHE_DOMAIN = CacheDomain.ORDER;
+    private static final CacheStrategy CACHE_STRATEGY = CacheStrategy.CACHE_ASIDE;
 
     /**
     * JVM 시작

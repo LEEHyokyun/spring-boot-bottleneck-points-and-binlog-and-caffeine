@@ -1,4 +1,4 @@
-package com.order.util;
+package com.common;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class KeyGenerator {
 
-    private static final String ORDER_PREFIX = "order";
+    //private static final String ORDER_PREFIX = "order";
     private final ExpressionParser expressionParser = new SpelExpressionParser();
 
     /**
-     * @Return {CacheName}:{KeyValue}
+     * @Return {CacheStrategy}:{CacheName}:{KeyValue}
      * */
-    public String generateKey(JoinPoint joinPoint, String cacheName, String key) {
+    public String generateKey(JoinPoint joinPoint, CacheStrategy cacheStrategy, CacheDomain cacheDomain, String key) {
         EvaluationContext context = new StandardEvaluationContext();
         /*
         * ex)
@@ -40,27 +40,27 @@ public class KeyGenerator {
         }
 
         /*
-         * cacheName + ":" + keyValue;
-         * ex) order : 1
+         * cacheStrategy : cacheDomain + ":" + keyValue;
+         * ex) cacheAside : order : 1
          * */
-        return cacheName + ":" + expressionParser.parseExpression(key).getValue(context, String.class);
+        return cacheStrategy + ":" + cacheDomain + ":" + expressionParser.parseExpression(key).getValue(context, String.class);
     }
 
     /*
      * Order Cache Key 생성
-     * ex) 1L -> order:1
+     * ex) 1L -> cacheAside:order:1
      */
     /**
-     * @Return {CacheName}:{KeyValue}
+     * @Return {CacheStrategy}:{CacheDomain}:{KeyValue}
      * */
-    public String generateOrderKey(Long orderId) {
-        return ORDER_PREFIX + ":" + orderId;
+    public String generateOrderKey(CacheStrategy cacheStrategy, CacheDomain cacheDomain, Long orderId) {
+        return cacheStrategy + ":" + cacheDomain + ":" + orderId;
     }
 
     /**
-     * @Return {CacheName}:{KeyValue}
+     * @Return {CacheStrategy}:{CacheDomain}:{KeyValue}
      * */
-    public String generateOrderKey(String orderId) {
-        return ORDER_PREFIX + ":" + orderId;
+    public String generateOrderKey(CacheStrategy cacheStrategy, CacheDomain cacheDomain, String orderId) {
+        return cacheStrategy + ":" + cacheDomain + ":" + orderId;
     }
 }

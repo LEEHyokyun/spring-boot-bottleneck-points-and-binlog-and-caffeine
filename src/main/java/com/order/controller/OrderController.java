@@ -1,13 +1,14 @@
 package com.order.controller;
 
-import com.order.model.request.OrderSelectRequest;
 import com.order.model.request.OrderUpdateRequest;
 import com.order.model.response.OrderSelectResponse;
 import com.order.model.response.OrderUpdateResponse;
-import com.order.service.OrderService;
+import com.order.service.OrderCacheService;
+import com.common.CacheStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.async.DeferredResult;
+
+import java.util.List;
 
 
 @RestController
@@ -15,16 +16,30 @@ import org.springframework.web.context.request.async.DeferredResult;
 @RequiredArgsConstructor
 public class OrderController {
 
-    private final OrderService orderService;
+    private final List<OrderCacheService> orderCacheServices;
 
-    @GetMapping("/select")
-    OrderSelectResponse select(@RequestParam Long orderId){
-        return orderService.select(orderId);
+    @GetMapping("/{cacheStrategy}/select")
+    OrderSelectResponse select(
+            @PathVariable CacheStrategy cacheStrategy,
+            @RequestParam Long orderId
+    ){
+        return this.getOrderCacheService(cacheStrategy).select(orderId);
     }
 
-    @PostMapping("/update")
-    public OrderUpdateResponse update(@RequestBody OrderUpdateRequest orderUpdateRequest) {
-        return orderService.update(orderUpdateRequest);
+    @PostMapping("/{cacheStrategy}/update")
+    public OrderUpdateResponse update(
+            @PathVariable CacheStrategy cacheStrategy,
+            @RequestBody OrderUpdateRequest orderUpdateRequest
+    ) {
+        return this.getOrderCacheService(cacheStrategy).update(orderUpdateRequest);
+    }
+
+    private OrderCacheService getOrderCacheService(CacheStrategy cacheStrategy){
+        return orderCacheServices.stream()
+                .filter(orderCacheService -> orderCacheService.supports(cacheStrategy))
+                .findFirst()
+                .orElseThrow()
+                ;
     }
 
 }

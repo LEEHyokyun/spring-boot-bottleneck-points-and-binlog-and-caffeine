@@ -5,6 +5,8 @@ import com.binlog.event.BinlogEventFactory;
 import com.binlog.event.BinlogPosition;
 import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.handler.CheckpointHandler;
+import com.common.CacheDomain;
+import com.common.CacheStrategy;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.*;
 import lombok.RequiredArgsConstructor;

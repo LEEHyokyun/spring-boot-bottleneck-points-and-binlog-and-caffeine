@@ -1,8 +1,8 @@
 package com.order.cache;
 
-import com.binlog.caffeine.CaffeineHandler;
-import com.binlog.metrics.BinlogMetrics;
-import com.order.util.KeyGenerator;
+import com.binlog.caffeine.handler.CaffeineHandler;
+import com.common.CacheDomain;
+import com.common.KeyGenerator;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,6 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.function.Supplier;
 
 @Aspect
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class CacheAspect {
 
-    private final CaffeineHandler caffeineHandler;
+    private final List<CaffeineHandler> caffeineHandlers;
     private final KeyGenerator keyGenerator;
 
     @Around("@annotation(cacheable)")
@@ -30,7 +31,8 @@ public class CacheAspect {
 
         String key = keyGenerator.generateKey(
                 joinPoint,
-                cacheable.cacheName(),
+                cacheable.cacheStrategy(),
+                cacheable.cacheDomain(),
                 cacheable.key()
         );
 
@@ -44,7 +46,9 @@ public class CacheAspect {
         * handler -> 범용(String, Object)
         * */
         try {
-            return caffeineHandler.fetch(
+            return this.getCaffeineHandler(cacheable.cacheDomain()).fetch(
+                    cacheable.cacheStrategy(),
+                    cacheable.cacheDomain(),
                     key,
                     ttl,
                     supplier,
@@ -73,5 +77,13 @@ public class CacheAspect {
                 (MethodSignature) joinPoint.getSignature();
 
         return signature.getReturnType();
+    }
+
+    private CaffeineHandler getCaffeineHandler(CacheDomain cacheDomain) {
+        return caffeineHandlers.stream()
+                .filter(caffeineHandler -> caffeineHandler.supports(cacheDomain))
+                .findFirst()
+                .orElseThrow()
+                ;
     }
 }

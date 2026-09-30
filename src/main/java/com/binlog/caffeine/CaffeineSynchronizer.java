@@ -1,24 +1,29 @@
 package com.binlog.caffeine;
 
+import com.binlog.caffeine.handler.CaffeineHandler;
+import com.binlog.caffeine.handler.OrderCaffeineHandler;
 import com.binlog.metrics.BinlogMetrics;
 import com.checkpoint.strategy.CheckPointStrategy;
 import com.binlog.event.BinlogEvent;
+import com.common.CacheDomain;
+import com.common.CacheStrategy;
 import com.exception.CacheSynchronizationException;
 import com.order.model.entity.Order;
-import com.order.util.KeyGenerator;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class CaffeineSynchronizer {
 
-    private final BinlogMetrics binlogMetrics;
+    private final List<CaffeineHandler> caffeineHandlers;
 
-    private final CaffeineHandler caffeineHandler;
+    private final BinlogMetrics binlogMetrics;
 
     /*
     * checkPoint를 어디에 저장할 것인가
@@ -96,7 +101,9 @@ public class CaffeineSynchronizer {
 
         Order order = getOrder(event);
 
-        caffeineHandler.put(
+        this.getCaffeineHandler(CacheDomain.ORDER).put(
+                CacheStrategy.CACHE_ASIDE,
+                CacheDomain.ORDER,
                 order.getOrderId(),
                 order
         );
@@ -106,7 +113,9 @@ public class CaffeineSynchronizer {
 
         Order order = getOrder(event);
 
-        caffeineHandler.put(
+        this.getCaffeineHandler(CacheDomain.ORDER).put(
+                CacheStrategy.CACHE_ASIDE,
+                CacheDomain.ORDER,
                 order.getOrderId(),
                 order
         );
@@ -117,7 +126,9 @@ public class CaffeineSynchronizer {
         /*
         * 삭제의 경우 캐싱에서 삭제한다.
         * */
-        caffeineHandler.evict(
+        this.getCaffeineHandler(CacheDomain.ORDER).evict(
+                CacheStrategy.CACHE_ASIDE,
+                CacheDomain.ORDER,
                 event.orderId()
         );
     }
@@ -134,5 +145,13 @@ public class CaffeineSynchronizer {
         }
 
         return event.order();
+    }
+
+    private CaffeineHandler getCaffeineHandler(CacheDomain cacheDomain){
+        return caffeineHandlers.stream()
+                .filter(caffeineHandler -> caffeineHandler.supports(cacheDomain))
+                .findFirst()
+                .orElseThrow()
+                ;
     }
 }

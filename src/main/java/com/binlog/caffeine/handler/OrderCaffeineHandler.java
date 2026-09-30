@@ -1,18 +1,17 @@
-package com.binlog.caffeine;
+package com.binlog.caffeine.handler;
 
 import com.binlog.metrics.BinlogMetrics;
+import com.common.CacheDomain;
+import com.common.CacheStrategy;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
-import com.order.model.entity.Order;
-import com.order.util.KeyGenerator;
+import com.common.KeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /*
@@ -22,7 +21,7 @@ import java.util.function.Supplier;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CaffeineHandler {
+public class OrderCaffeineHandler implements  CaffeineHandler {
 
     private final KeyGenerator keyGenerator;
     private static final Long DEFAULT_TTL_SECONDS = 3000L; //TTL 정책 없으면 50분
@@ -31,7 +30,7 @@ public class CaffeineHandler {
     /*
     * 범용화(Long/Order 전용이 아니라 모든 AOP/동기화 처리에 사용 가능하도록
     * */
-    private final Cache<String, CacheValue> cache =
+    public final Cache<String, CacheValue> cache =
             Caffeine.newBuilder()
                     .maximumSize(10_000)
                     .expireAfter(new Expiry<String, CacheValue>() {
@@ -69,10 +68,11 @@ public class CaffeineHandler {
     /*
     * binlog / Recovery : 300sec default
     * */
-    public void put(String key, Object value) {
+    @Override
+    public void put(CacheStrategy cacheStrategy, CacheDomain cacheDomain, String key, Object value) {
 
         cache.put(
-                keyGenerator.generateOrderKey(key),
+                keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key),
                 new CacheValue(
                     value,
                     Duration.ofSeconds(DEFAULT_TTL_SECONDS).toNanos()
@@ -83,10 +83,11 @@ public class CaffeineHandler {
     /*
      * binlog / Recovery : 300sec default
      * */
-    public void put(long key, Object value) {
+    @Override
+    public void put(CacheStrategy cacheStrategy, CacheDomain cacheDomain, long key, Object value) {
 
         cache.put(
-                keyGenerator.generateOrderKey(key),
+                keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key),
                 new CacheValue(
                         value,
                         Duration.ofSeconds(DEFAULT_TTL_SECONDS).toNanos()
@@ -94,21 +95,23 @@ public class CaffeineHandler {
         );
     }
 
-
-    public void evict(long key){
-        cache.invalidate(keyGenerator.generateOrderKey(key));
+    @Override
+    public void evict(CacheStrategy cacheStrategy, CacheDomain cacheDomain, long key){
+        cache.invalidate(keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key));
     }
 
-    public Object get(String key){
+    @Override
+    public Object get(CacheStrategy cacheStrategy, CacheDomain cacheDomain, String key){
 
-        CacheValue cacheValue = cache.getIfPresent(keyGenerator.generateOrderKey(key));
+        CacheValue cacheValue = cache.getIfPresent(keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key));
 
         return (cacheValue == null) ? null : cacheValue.value;
     }
 
-    public Object get(long key){
+    @Override
+    public Object get(CacheStrategy cacheStrategy, CacheDomain cacheDomain, long key){
 
-        CacheValue cacheValue = cache.getIfPresent(keyGenerator.generateOrderKey(key));
+        CacheValue cacheValue = cache.getIfPresent(keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key));
 
         return (cacheValue == null) ? null : cacheValue.value;
     }
@@ -142,6 +145,7 @@ public class CaffeineHandler {
 //        );
 //    }
 
+    @Override
     public long size(){
         return cache.estimatedSize();
     }
@@ -149,7 +153,10 @@ public class CaffeineHandler {
     /*
     * cacheaside : 300sec default
     * */
+    @Override
     public Object fetch(
+            CacheStrategy cacheStrategy,
+            CacheDomain cacheDomain,
             String key,
             Duration ttl,
             Supplier<Object> supplier,
@@ -160,7 +167,7 @@ public class CaffeineHandler {
         * 전체 요청 계측
         * */
         binlogMetrics.incrementCacheRequest();
-        CacheValue cacheValue = cache.getIfPresent(keyGenerator.generateOrderKey(key));
+        CacheValue cacheValue = cache.getIfPresent(keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key));
 
         /*
          * Cache Hit
@@ -196,7 +203,7 @@ public class CaffeineHandler {
          * Cache Miss -> TTL 적용한 캐싱 데이터 적재
          */
         cache.put(
-                keyGenerator.generateOrderKey(key),
+                keyGenerator.generateOrderKey(cacheStrategy, cacheDomain, key),
                 new CacheValue(
                         value,
                         ttl.toNanos()
@@ -206,7 +213,8 @@ public class CaffeineHandler {
         return value;
     }
 
-    private void validateReturnType(
+    @Override
+    public void validateReturnType(
             Object value,
             Class<?> returnType
     ) {
@@ -216,11 +224,16 @@ public class CaffeineHandler {
 
         if (!returnType.isInstance(value)) {
             throw new IllegalStateException(
-                    "[ERROR][CaffeineHandler.validateReturnType] Cached value type does not match return type. "
+                    "[ERROR][OrderCaffeineHandler.validateReturnType] Cached value type does not match return type. "
                             + "expected=" + returnType.getName()
                             + ", actual=" + value.getClass().getName()
             );
         }
+    }
+
+    @Override
+    public boolean supports (CacheDomain cacheDomain) {
+        return CacheDomain.ORDER == cacheDomain;
     }
 
     /*
@@ -231,4 +244,5 @@ public class CaffeineHandler {
             long ttlNanos
     ) {
     }
+
 }

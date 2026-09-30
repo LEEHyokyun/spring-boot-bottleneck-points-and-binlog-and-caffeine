@@ -1,10 +1,13 @@
 package com.binlog.caffeine;
 
+import com.binlog.caffeine.handler.CaffeineHandler;
+import com.binlog.caffeine.handler.OrderCaffeineHandler;
 import com.binlog.event.BinlogPosition;
 import com.checkpoint.handler.CheckpointHandler;
+import com.common.CacheDomain;
+import com.common.CacheStrategy;
 import com.order.model.entity.Order;
 import com.order.repository.OrderRepository;
-import com.order.util.KeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CaffeineRecoveryHandler {
 
-    private final CaffeineHandler caffeineHandler;
+    private final List<CaffeineHandler> caffeineHandlers;
     private final CheckpointHandler checkpointHandler;
     private final OrderRepository orderRepository;
 
@@ -36,7 +39,7 @@ public class CaffeineRecoveryHandler {
     * 2. 현재 DB의 Hot Data 1~200 복구
     * 3. 조회한 checkpoint 반환
     * */
-    public BinlogPosition recover(){
+    public BinlogPosition recover() {
         /*
         * DB에 저장된 마지막 Checkpoint 조회
         * */
@@ -51,7 +54,7 @@ public class CaffeineRecoveryHandler {
         * 이 시점 이후부터는 binlogPosition 상태를 저장하여, 캐싱 데이터 동기화 및 position Replay가 이루어진다.
         * */
         log.info( "Cache recovery completed. cacheSize={}, checkpoint={}",
-                caffeineHandler.size(), checkpoint
+                this.getCaffeineHandler(CacheDomain.ORDER).size(), checkpoint
         );
 
         return checkpoint;
@@ -61,7 +64,7 @@ public class CaffeineRecoveryHandler {
     * 현재 DB의 Hot Data를 Caffeine에 복구한다.
     * checkpoint 존재 여부와 관계없이 항상 실행된다.
     * */
-    private void restoreHotData(){
+    private void restoreHotData() {
 
         /*
         * 현재 저장된 order 내역을 JVM Caffeine에 전체 복구
@@ -69,7 +72,9 @@ public class CaffeineRecoveryHandler {
         List<Order> orders = orderRepository.findByOrderIdBetween(HOT_DATA_START_ORDER_ID, HOT_DATA_END_ORDER_ID);
 
         for (Order order : orders) {
-            caffeineHandler.put(
+            this.getCaffeineHandler(CacheDomain.ORDER).put(
+                    CacheStrategy.CACHE_ASIDE,
+                    CacheDomain.ORDER,
                     order.getOrderId(),
                     order
             );
@@ -77,5 +82,13 @@ public class CaffeineRecoveryHandler {
 
         log.info( "Hot data restored. range={}~{}, count={}", HOT_DATA_START_ORDER_ID, HOT_DATA_END_ORDER_ID, orders.size() );
 
+    }
+
+    private CaffeineHandler getCaffeineHandler(CacheDomain cacheDomain){
+        return caffeineHandlers.stream()
+                .filter(caffeineHandler -> caffeineHandler.supports(cacheDomain))
+                .findFirst()
+                .orElseThrow()
+                ;
     }
 }
