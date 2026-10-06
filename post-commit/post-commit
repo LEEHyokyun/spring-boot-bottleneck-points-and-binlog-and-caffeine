@@ -33,7 +33,6 @@ cd "$PROJECT_DIR" || exit 1
 
 codex exec \
   --sandbox workspace-write \
-  --ask-for-approval never \
 "
 현재 Git repository에서 방금 생성된 commit을 설계 관점에서 리뷰하고,
 결과를 지정된 review.md에 기록하라.
