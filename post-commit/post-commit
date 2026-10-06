@@ -23,7 +23,9 @@ codex exec \
 "
 다음 3개 규칙 문서를 순서대로 확인하고 따른다.
 
-$ARCHITECTURE_FILE
 $REVIEW_RULE
+$ARCHITECTURE_FILE
 $REVIEW_FORMAT
+
+규칙을 숙지한 후, 결과를 $REVIEW_FILE에 기록한다.
 "
