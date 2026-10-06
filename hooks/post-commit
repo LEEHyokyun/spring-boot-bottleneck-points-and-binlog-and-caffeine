@@ -1,0 +1,69 @@
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+PROJECT_NAME="$(basename "$PROJECT_DIR")"
+
+CONTROL_TOWER="C:/study/agents-control-towers"
+REVIEW_FILE="C:/study/review/$PROJECT_NAME/review.md"
+
+COMMIT_HASH="$(git rev-parse HEAD)"
+
+codex exec \
+  --sandbox workspace-write \
+  --ask-for-approval never \
+"
+현재 Git repository에서 방금 생성된 commit을 설계 관점에서 리뷰하고,
+결과를 지정된 review.md에 기록하라.
+
+[현재 프로젝트]
+$PROJECT_DIR
+
+[프로젝트명]
+$PROJECT_NAME
+
+[대상 Commit]
+$COMMIT_HASH
+
+[설계 기준]
+$CONTROL_TOWER/AGENTS.md
+$CONTROL_TOWER/.architecture/
+
+[결과 리뷰]
+$REVIEW_FILE
+
+먼저 $CONTROL_TOWER/AGENTS.md의 리뷰 수행 지침을 확인한다.
+그 다음 $CONTROL_TOWER/.architecture/의 설계 원칙을 확인한다.
+
+현재 repository의 대상 commit과 직전 commit의 변경사항을 확인한다.
+변경사항과 직접적으로 관련된 코드만 필요한 범위에서 확인한다.
+
+다음 두 가지를 판단한다.
+
+1. 설계 원칙을 잘 지킨 부분
+2. 설계 원칙과 비교했을 때 추가 확인이 필요한 부분
+
+리뷰의 목적은 전체 코드의 상세한 코드 리뷰나 수정안을 작성하는 것이 아니다.
+설계 원칙에 대한 변경사항의 부합 여부를 요약하는 것이다.
+
+[작성 규칙]
+
+- 잘 지켜진 점은 2~3개 이내로 요약한다.
+- 확인해야 할 점도 2~3개 이내로 요약한다.
+- 실제 문제가 없는 경우 억지로 문제를 만들어내지 않는다.
+- 설계 원칙과 직접적인 관련이 없는 단순한 코드 스타일 지적은 작성하지 않는다.
+- .architecture에 존재하지 않는 임의의 사상이나 원칙을 만들어내지 않는다.
+- 기존 review.md의 내용을 삭제하거나 수정하지 않는다.
+- Review History에 이번 commit의 리뷰를 추가한다.
+- review.md의 Review Template 형식을 그대로 따른다.
+- 이번 리뷰에서 실제로 참고한 .architecture 문서를 '적용한 설계 기준'에 기록한다.
+- review.md가 존재하지 않는 경우 지정된 Template을 기준으로 생성한다.
+
+[Git 변경 금지]
+
+이 작업은 post-commit에서 실행되는 사후 리뷰이다.
+이미 생성된 commit에는 어떠한 변경도 가하지 않는다.
+
+리뷰 과정에서 git add, git commit, git reset, git checkout 등
+Git history 또는 working tree를 변경하는 작업을 수행하지 않는다.
+
+리뷰 결과를 작성한 후 별도의 git commit을 생성하지 않는다.
+리뷰 대상은 현재 commit이며, 리뷰 결과만 $REVIEW_FILE에 기록한다.
+"
