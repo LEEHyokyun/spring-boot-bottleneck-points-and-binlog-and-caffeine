@@ -1,3 +1,5 @@
+echo "[HOOK START] $(date)" >> /tmp/codex-review-hook.log
+
 PROJECT_DIR="$(git rev-parse --show-toplevel)"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 
