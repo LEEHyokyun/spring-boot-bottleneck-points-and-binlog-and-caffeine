@@ -26,7 +26,4 @@ codex exec \
 $ARCHITECTURE_FILE
 $REVIEW_RULE
 $REVIEW_FORMAT
-
-$PARENT_HASH → $COMMIT_HASH 변경사항을 리뷰하고,
-결과를 $REVIEW_FILE에 기록한다.
 "
