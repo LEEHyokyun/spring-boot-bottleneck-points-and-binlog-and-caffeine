@@ -1,110 +1,56 @@
 #!/bin/sh
 
-echo "[HOOK START] $(date)" >> /tmp/codex-review-hook.log
-
-# 1. 현재 Git repository
-PROJECT_DIR="$(git rev-parse --show-toplevel)"
+PROJECT_DIR="$(git rev-parse --show-toplevel)" || exit 1
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 
-# 2. Control Tower
 CONTROL_TOWER="C:/study/agents-control-towers"
 
-# 3. 리뷰 기준
-REVIEW_RULE="$CONTROL_TOWER/rule/rule.md"
-ARCHITECTURE_DIR="$CONTROL_TOWER/.architecture"
+ARCHITECTURE_FILE="$CONTROL_TOWER/.rough-architecture/rough-architecture.md"
+REVIEW_RULE="$CONTROL_TOWER/rough-rule/rough-rule.md"
 
-# 4. 프로젝트별 리뷰 결과
 REVIEW_DIR="$CONTROL_TOWER/review/$PROJECT_NAME"
+REVIEW_FORMAT="$REVIEW_DIR/rough-review-rule.md"
 REVIEW_FILE="$REVIEW_DIR/review.md"
 
-# 5. 대상 Commit
 COMMIT_HASH="$(git rev-parse HEAD)"
+PARENT_HASH="$(git rev-parse HEAD^ 2>/dev/null)"
 
-echo "PROJECT_DIR=$PROJECT_DIR" >> /tmp/codex-review-hook.log
-echo "PROJECT_NAME=$PROJECT_NAME" >> /tmp/codex-review-hook.log
-echo "COMMIT_HASH=$COMMIT_HASH" >> /tmp/codex-review-hook.log
-echo "REVIEW_RULE=$REVIEW_RULE" >> /tmp/codex-review-hook.log
-echo "ARCHITECTURE_DIR=$ARCHITECTURE_DIR" >> /tmp/codex-review-hook.log
-echo "REVIEW_FILE=$REVIEW_FILE" >> /tmp/codex-review-hook.log
-
-# post-commit이 어디에서 호출되더라도
-# Codex가 반드시 실제 프로젝트를 작업 디렉터리로 사용하도록 한다.
 cd "$PROJECT_DIR" || exit 1
 
 codex exec \
   --sandbox workspace-write \
 "
-현재 Git repository에서 방금 생성된 commit을 설계 관점에서 리뷰하고,
-결과를 지정된 review.md에 기록하라.
+현재 commit을 리뷰하라.
 
-[현재 프로젝트]
-$PROJECT_DIR
+반드시 다음 3개 문서를 이 순서로 따른다.
 
-[프로젝트명]
-$PROJECT_NAME
+1. $ARCHITECTURE_FILE
+2. $REVIEW_RULE
+3. $REVIEW_FORMAT
 
-[대상 Commit]
+세 문서에 없는 기준을 임의로 추가하거나 해석하지 않는다.
+
+대상 commit:
 $COMMIT_HASH
 
-[설계 기준]
-$ARCHITECTURE_DIR
+직전 commit:
+$PARENT_HASH
 
-[리뷰 규칙]
-$REVIEW_RULE
+변경사항을 확인하고 src/main 또는 src/test 변경만 리뷰한다.
+그 외 변경은 '리뷰 대상 아님'으로 기록한다.
 
-[결과 리뷰]
-$REVIEW_FILE
-
-먼저 $REVIEW_RULE의 리뷰 수행 지침과 Review Template을 확인한다.
-그 다음 $ARCHITECTURE_DIR의 설계 원칙을 확인한다.
-
-현재 repository의 대상 commit과 직전 commit의 변경사항을 확인한다.
-변경사항과 직접적으로 관련된 코드만 필요한 범위에서 확인한다.
-
-다음 두 가지를 판단한다.
-
-1. 설계 원칙을 잘 지킨 부분
-2. 설계 원칙과 비교했을 때 추가 확인이 필요한 부분
-
-리뷰의 목적은 전체 코드의 상세한 코드 리뷰나 수정안을 작성하는 것이 아니다.
-설계 원칙에 대한 변경사항의 부합 여부를 요약하는 것이다.
-
-[작성 규칙]
-
-- 잘 지켜진 점은 2~3개 이내로 요약한다.
-- 확인해야 할 점도 2~3개 이내로 요약한다.
-- 실제 문제가 없는 경우 억지로 문제를 만들어내지 않는다.
-- 설계 원칙과 직접적인 관련이 없는 단순한 코드 스타일 지적은 작성하지 않는다.
-- .architecture에 존재하지 않는 임의의 사상이나 원칙을 만들어내지 않는다.
-- 기존 review.md의 내용을 삭제하거나 수정하지 않는다.
-- Review History에 이번 commit의 리뷰를 추가한다.
-- $REVIEW_RULE의 Review Template 형식을 그대로 따른다.
-- 이번 리뷰에서 실제로 참고한 .architecture 문서를 '적용한 설계 기준'에 기록한다.
-
-[Review 파일]
-
-리뷰 파일은 다음 위치에 생성하거나 기존 파일에 이번 리뷰를 추가한다.
+리뷰 결과는 다음 파일에 기록한다.
 
 $REVIEW_FILE
 
-$REVIEW_FILE의 상위 디렉터리가 존재하지 않는 경우 필요한 디렉터리를 생성한다.
+기존 review.md가 있으면 기존 형식과 Review History를 유지하고
+이번 commit 결과만 추가한다.
 
-기존 review.md가 존재한다면 기존 내용을 유지하고,
-이번 commit의 리뷰를 Review History에 추가한다.
+$REVIEW_FORMAT의 규칙을 반드시 따른다.
+기존 review.md의 형식이나 구조를 임의로 변경하지 않는다.
 
-review.md 전체를 새로 작성하여 기존 내용을 덮어쓰지 않는다.
+관련 변경사항만 확인하고 프로젝트 전체를 탐색하지 않는다.
 
-[Git 변경 금지]
-
-이 작업은 post-commit에서 실행되는 사후 리뷰이다.
-이미 생성된 commit에는 어떠한 변경도 가하지 않는다.
-
-리뷰 과정에서 git add, git commit, git reset, git checkout 등
-Git history 또는 working tree를 변경하는 작업을 수행하지 않는다.
-
-리뷰 결과를 작성한 후 별도의 git commit을 생성하지 않는다.
-
-리뷰 대상은 현재 commit이다.
-
-최종적으로 리뷰 결과만 $REVIEW_FILE에 기록한다.
+Git history와 working tree를 변경하지 않는다.
+git add, commit, reset, checkout, restore, rebase를 실행하지 않는다.
 "
