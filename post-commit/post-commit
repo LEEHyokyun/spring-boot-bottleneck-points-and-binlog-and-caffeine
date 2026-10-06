@@ -19,38 +19,14 @@ cd "$PROJECT_DIR" || exit 1
 
 codex exec \
   --sandbox workspace-write \
+  --add-dir "$REVIEW_DIR" \
 "
-현재 commit을 리뷰하라.
+다음 3개 규칙 문서를 순서대로 확인하고 따른다.
 
-반드시 다음 3개 문서를 이 순서로 따른다.
+$ARCHITECTURE_FILE
+$REVIEW_RULE
+$REVIEW_FORMAT
 
-1. $ARCHITECTURE_FILE
-2. $REVIEW_RULE
-3. $REVIEW_FORMAT
-
-세 문서에 없는 기준을 임의로 추가하거나 해석하지 않는다.
-
-대상 commit:
-$COMMIT_HASH
-
-직전 commit:
-$PARENT_HASH
-
-변경사항을 확인하고 src/main 또는 src/test 변경만 리뷰한다.
-그 외 변경은 '리뷰 대상 아님'으로 기록한다.
-
-리뷰 결과는 다음 파일에 기록한다.
-
-$REVIEW_FILE
-
-기존 review.md가 있으면 기존 형식과 Review History를 유지하고
-이번 commit 결과만 추가한다.
-
-$REVIEW_FORMAT의 규칙을 반드시 따른다.
-기존 review.md의 형식이나 구조를 임의로 변경하지 않는다.
-
-관련 변경사항만 확인하고 프로젝트 전체를 탐색하지 않는다.
-
-Git history와 working tree를 변경하지 않는다.
-git add, commit, reset, checkout, restore, rebase를 실행하지 않는다.
+$PARENT_HASH → $COMMIT_HASH 변경사항을 리뷰하고,
+결과를 $REVIEW_FILE에 기록한다.
 "
