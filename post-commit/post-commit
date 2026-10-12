@@ -1,31 +1,3 @@
 #!/bin/sh
 
-PROJECT_DIR="$(git rev-parse --show-toplevel)" || exit 1
-PROJECT_NAME="$(basename "$PROJECT_DIR")"
-
-CONTROL_TOWER="C:/study/agents-control-towers"
-
-ARCHITECTURE_FILE="$CONTROL_TOWER/.rough-architecture/rough-architecture.md"
-REVIEW_RULE="$CONTROL_TOWER/rough-rule/rough-rule.md"
-
-REVIEW_DIR="$CONTROL_TOWER/review/$PROJECT_NAME"
-REVIEW_FORMAT="$REVIEW_DIR/rough-review-rule.md"
-REVIEW_FILE="$REVIEW_DIR/review.md"
-
-COMMIT_HASH="$(git rev-parse HEAD)"
-PARENT_HASH="$(git rev-parse HEAD^ 2>/dev/null)"
-
-cd "$PROJECT_DIR" || exit 1
-
-codex exec \
-  --sandbox workspace-write \
-  --add-dir "$REVIEW_DIR" \
-"
-다음 3개 규칙 문서를 순서대로 확인하고 따른다.
-
-$REVIEW_RULE
-$ARCHITECTURE_FILE
-$REVIEW_FORMAT
-
-규칙을 숙지한 후, 결과를 $REVIEW_FILE에 기록한다.
-"
+node "C:/study/agents-control-towers/scripts/request-review.mjs"
