@@ -45,7 +45,7 @@ class OrderCacheableServiceTest_Origin {
     }
 
     @Test
-    void sliceTest() {
+    void orderCacheableServicePerformanceTest() {
 
         // when
         OrderUpdateResponse response =

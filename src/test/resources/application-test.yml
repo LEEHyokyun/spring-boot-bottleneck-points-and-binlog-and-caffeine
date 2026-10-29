@@ -1,15 +1,22 @@
 spring:
+  datasource:
+    url: jdbc:tc:mysql:8.0.42:///orders
+    username: test
+    password: test
   jpa:
-    hibernate:
-      ddl-auto: create-drop
+#    hibernate:
+#      ddl-auto: create-drop #생성했는데 이것때문에 drop을 한다(데이터까지 모두 사라지는 것이 문제)
     properties:
       hibernate:
         format_sql: true #pretty format
         highlight_sql : true #colored
-#  sql:
-#    init:
-#      mode: always
-#      schema-locations: classpath:org/springframework/batch/core/schema-drop-mysql.sql
+  sql:
+    init:
+      mode: always
+      schema-locations:
+        - classpath:/checkpoint-test-data.sql
+        - classpath:/order-test-data.sql
+  #      schema-locations: classpath:org/springframework/batch/core/schema-drop-mysql.sql
   batch:
     job:
       enabled: false

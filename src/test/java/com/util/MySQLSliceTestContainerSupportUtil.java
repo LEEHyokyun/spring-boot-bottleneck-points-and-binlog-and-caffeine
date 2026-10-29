@@ -1,5 +1,6 @@
 package com.util;
 
+import com.checkpoint.model.Checkpoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -7,6 +8,8 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.LocalDateTime;
 
 /*
 * TestContainer는 기본적으로 본인 스스로 컨테이너를 띄우고, 접속정보를 생성하여 테스트 컨테이너 환경을 생성한다.
@@ -24,6 +27,21 @@ public class MySQLSliceTestContainerSupportUtil {
     @Autowired
     protected TestEntityManager testEntityManager;
 
+//    @BeforeEach
+//    protected void insertInitialData(){
+//
+//        testEntityManager.getEntityManager()
+//        .createNativeQuery("TRUNCATE TABLE article")
+//        .executeUpdate();
+//
+//        Checkpoint checkpoint = Checkpoint.from(
+//                "binlog.000003", 4, ""
+//        );
+//
+//        testEntityManager.persist(checkpoint);
+//        testEntityManager.flush();
+//        testEntityManager.clear();
+//    }
 //    @BeforeEach
 //    protected void insertData() {
 //        testEntityManager.getEntityManager()
